@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import grpc
@@ -13,13 +15,21 @@ class NameRequest(BaseModel):
 
 @app.post("/greet/")
 def greet(request: NameRequest):
-    with grpc.insecure_channel('grpc-server:50051') as channel:
+    host = os.getenv("HOST", "localhost")
+    port = os.getenv("PORT", "50051")
+
+    with grpc.insecure_channel(f"{host}:{port}") as channel:
         stub = helloworld_pb2_grpc.GreeterStub(channel)
         try:
             response = stub.SayHello(helloworld_pb2.HelloRequest(name=request.name))
             return {"message": response.message}
         except grpc.RpcError as e:
             raise HTTPException(status_code=e.code().value[0], detail=str(e))
+
+@app.get("/")
+def root():
+    return "A Dummy FastAPI service to Test Client!"
+
 
 
 if __name__ == "__main__":
