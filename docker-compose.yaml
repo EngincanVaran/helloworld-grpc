@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  grpc-server:
+    build:
+      context: ./server
+    volumes:
+      - ./proto:/app/proto
+    ports:
+      - "50051:50051"
+
+  fastapi-client:
+    build:
+      context: ./client
+    volumes:
+      - ./proto:/app/proto
+    ports:
+      - "8000:8000"
+    depends_on:
+      - grpc-server
